@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test
+  namespace: test
+data:
+  INSTANCE: "-instances=od-io-development:europe-west4:development-mysql-master=tcp:3306"

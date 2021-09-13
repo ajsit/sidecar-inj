@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    od.io/overlay: kind
+    od.io/provisioner: kustomize
+  name: mutating-webhook-service
+  namespace: default
+spec:
+  ports:
+  - port: 443
+    targetPort: 8443
+  selector:
+    component: mutating-webhook-server
+    od.io/overlay: kind
+    od.io/provisioner: kustomize
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    od.io/overlay: kind
+    od.io/provisioner: kustomize
+  name: mutating-webhook-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: mutating-webhook-server
+      od.io/overlay: kind
+      od.io/provisioner: kustomize
+  template:
+    metadata:
+      labels:
+        component: mutating-webhook-server
+        od.io/overlay: kind
+        od.io/provisioner: kustomize
+    spec:
+      containers:
+      - image: smithaj/sidecar:1
+        name: mutating-webhook-server
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  labels:
+    od.io/overlay: kind
+    od.io/provisioner: kustomize
+  name: mutating-webhook
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUdCRENDQSt5Z0F3SUJBZ0lKQUp2QUJKc1RPRkFsTUEwR0NTcUdTSWIzRFFFQkN3VUFNSUdXTVFzd0NRWUQKVlFRR0V3SkVSVEVQTUEwR0ExVUVDQXdHUW1WeWJHbHVNUkF3RGdZRFZRUUhEQWRDWlhKc2FXNGdNUkF3RGdZRApWUVFLREFkQklGTnRhWFJvTVF3d0NnWURWUVFMREFOUVNVSXhGakFVQmdOVkJBTU1EU291WkdWbVlYVnNkQzV6CmRtTXhMREFxQmdrcWhraUc5dzBCQ1FFV0hYTnRhWFJvWVdwQVlXcHphWFF1YjI1dFkybHliM052Wm5RdVkyOXQKTUI0WERUSXhNRGt4TXpFek1UazBObG9YRFRJME1EY3dNekV6TVRrME5sb3dnWll4Q3pBSkJnTlZCQVlUQWtSRgpNUTh3RFFZRFZRUUlEQVpDWlhKc2FXNHhFREFPQmdOVkJBY01CMEpsY214cGJpQXhFREFPQmdOVkJBb01CMEVnClUyMXBkR2d4RERBS0JnTlZCQXNNQTFCSlFqRVdNQlFHQTFVRUF3d05LaTVrWldaaGRXeDBMbk4yWXpFc01Db0cKQ1NxR1NJYjNEUUVKQVJZZGMyMXBkR2hoYWtCaGFuTnBkQzV2Ym0xamFYSnZjMjltZEM1amIyMHdnZ0lpTUEwRwpDU3FHU0liM0RRRUJBUVVBQTRJQ0R3QXdnZ0lLQW9JQ0FRRE5ZZVdHZFhuVjQ4ZkdDYUFvbzNpVzg4SHRPRUpiCktzMzVNYnJuclMyU3d2UWdaVnRRbk1INGdVeTE0MTFBR1U0RjhiQmd3dG5PWTNYVE5NQ3RHbU1QNFdCZnNnKzIKMkVTak1yRGlqdE1jaExCQ2hXYXBkQTZhS3VxdHZjWWFKUTU5MUw3WUd6bXkrM0dMWVozSUh0aVRhSm93aExzSwpjUFphRHE4ajRsdVk3U0FQMi9nNnJCNzhzelB3QjZGL2U2MnE0ZGVXKytCZHp5SHNXYzJoK0VVN0VlOEd4T2NTClJWVS9hbDRnZUpyTS9BanVBOGVnWW1uQU5CS1EyaGRuODJwU1c1ZjI2VlZpeHd6WEhSc1VSYXdWcEk3dkU1Uk8KTzJOWm50eFJaVWwzZzRrcjZHRWJBT0tWSWRuY3NTYWpkd2xPc1RmYXVtVmtuUGt0RmkzRkQ4QTdFTERuaUMvUgo3UUpVc2RpVnZuY0tTYXNyRzZZYzNCV1I0eEJLaWRXL2hpZEUxVkNLTU5xVTNBS0pqTzFueG5MUXdWY3B0L0JCCm9FYXM1SzJRWVZmQW10NUJ0VkNaUXpxcVFlNjhJdE96VUkvWmpSSGZDWit3bEw3QnFaRWFOYk9VcXppSXIvemkKT0YyY2Q1UmE3OE5jTloweEh1K2pDQjFEemxRc0d1ajhMZFNkM3NyMEJwVzYwUXNuR0dhQ3c2aFhBRk9pSW9qSwpZWWozYU9RR2dWNzZ0QXV3eC9sOHlJbURyWmxlUFdMZytDemw4Z1ZhcnlqUFJkSmU1dHptcm1PbWZkeTRMUVA0CkV4MXQwQmRFbnQvYjFaQjh0d2NZSUgxdUZ5WGhmd05ybnZKd3YyYm45T2EreWZtRGh2UFAzVUE1ODhXbmVzeFEKOFZxTXNLcmQzK0VXWXdJREFRQUJvMU13VVRBZEJnTlZIUTRFRmdRVXdSZ3BEY2dPR0xCZDZyTGVzWUYyT1VCbApKZHN3SHdZRFZSMGpCQmd3Rm9BVXdSZ3BEY2dPR0xCZDZyTGVzWUYyT1VCbEpkc3dEd1lEVlIwVEFRSC9CQVV3CkF3RUIvekFOQmdrcWhraUc5dzBCQVFzRkFBT0NBZ0VBcFZjTVNqUUptajV2Vi9VY2NoQk9weVJOQUcxUEhMVEkKakwrOERlVkNXc1Q0TDR1Y25HdTdzZHFNdnY1cnhKa2VoT0k5ZWhuTlJKR3U3M2Vzb21ramhNNjkwa1J3NU1LNQprZHBCSEJJa2JsMGFXcDZUaVJDMTRWK0ExVnNyZWhjamZTb1BIN0gzYU1YMUEzUjlhcFdJT05sY1lwQUU4MDlhCnRzNjhjeTltUmhSL1BQWHRoV3dWOFNKQTU5czEvNnAwQXJOMDlmb1dsbGt6Q0gyd3Z5b09LbWJmSWR1bzc3d0gKTitpSWZEby9CWUxON1VBNEpNQ0NjbXRhYkp3VjlQcCtsNWZmb0ljazdFQ09FdnZiT1Y4ZStmejJ0ZkpUVVk2Uwo2RUZEV05FTCtKck9aTG5sbEZ6dVFjNHc4bFNTYnYrUDRwUzd0VFM4SzN5ZU1NOFlLMnYzOURyRGM1YWNRWXlQCmNzMlFLK1dPNE03bWt5ekEwZXlXVURFQTc5MWZaL2Z2dklpZDdZMTY4cE1KdS94dXJlRnNZSXlpb25vaFdVbG4KL2xLVmtrSWpITENFQkp1V0dNTlVPajIzZ3licjR4a3R5UjRLcWR4Rm1FbUdhci9ia010VUlvRk1vWjg5MHNHVgoxdWdEUGRkK3J3eDlNaWhNV3dQcUVWTWliVVNId2Q1dzl3OEhCTi9PZ01MZGdZYy9abCs0YkMrSk4rVXhCVEpJCnQzVVhVNmx2Q0tyalNtVmJNYnBUdEgzR0ZPMG1saU5aaS9RQkdGZ3lKMTk4U284Z0dRVWtIV0JaU2VET09PckUKK2I3SnQ0M2VNc2E2azY2UUlVd05oOUlOWmR0RDJta3M1SUQ3alZiY3ZpS0p3Vk1MWE9NMVpFRW90bm9NRnBYRQo1bGtYYk9reXArMD0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    service:
+      name: mutating-webhook
+      namespace: default
+      path: /mutate
+  failurePolicy: Fail
+  name: mutating-webhook.default.svc
+  objectSelector:
+    matchLabels:
+      foo: bar
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  sideEffects: None

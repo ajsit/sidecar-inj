@@ -1,0 +1,7 @@
+.idea
+*.iml
+*.key
+*.csr
+*.srl
+*.crt
+kust.yaml
