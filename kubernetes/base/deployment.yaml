@@ -1,0 +1,19 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mutating-webhook-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: mutating-webhook-server
+  template:
+    metadata:
+      labels:
+        component: mutating-webhook-server
+    spec:
+      containers:
+      - name: mutating-webhook-server
+        image: smithaj/sidecar:1.04
+        imagePullPolicy: Never

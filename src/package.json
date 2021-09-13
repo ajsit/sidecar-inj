@@ -1,0 +1,12 @@
+{
+    "name": "server",
+    "version": "1.0.0",
+    "description": "Sidecar Injector Kubernetes",
+    "main": "sidecar.js",
+    "author": "",
+    "license": "UNLICENSED",
+    "dependencies":{
+      "express": "*",
+      "body-parser": "*"
+    }
+  }

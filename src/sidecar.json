@@ -1,0 +1,14 @@
+[
+  {"op": "add",
+   "path": "/spec/containers/-",
+   "value": {
+       "name": "sql-proxy-sidecar", 
+       "image": "gcr.io/cloudsql-docker/gce-proxy:1.24.0", 
+       "command": [
+           "/cloud_sql_proxy", 
+           "$(INSTANCE"],
+       "securityContext": {
+           "runAsNonRoot": true
+       }}
+  }
+]

@@ -1,0 +1,26 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: test
+      gcp-sql-proxy: enabled
+  template:
+    metadata:
+      labels:
+        component: test
+        foo: bar
+         gcp-sql-proxy: enabled
+    spec:
+      containers:
+      - name: test
+        image: node:14
+        env:
+          - name: INSTANCE
+            value: "test"
+        command: [ "/bin/sh", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
