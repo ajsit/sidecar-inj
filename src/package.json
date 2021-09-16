@@ -2,7 +2,7 @@
     "name": "server",
     "version": "1.0.0",
     "description": "Sidecar Injector Kubernetes",
-    "main": "sidecar.js",
+    "main": "webhook.js",
     "author": "",
     "license": "UNLICENSED",
     "dependencies":{

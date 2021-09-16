@@ -12,13 +12,19 @@ spec:
       gcp-sql-proxy: enabled
   template:
     metadata:
+      annotations:
+        sqlinstance: -instances=od-io-development:europe-west4:development-mysql-master=tcp:3306
       labels:
         component: test
         foo: bar
         gcp-sql-proxy: enabled
     spec:
       containers:
-      - name: test
-        image: node:14
-        command: [ "/bin/sh", "-c", "--" ]
-        args: [ "while true; do sleep 30; done;" ]
+        - name: test
+          image: node:14-alpine
+          command: [ "/bin/sh", "-c", "--" ]
+          args: [ "while true; do sleep 30; done;" ]
+        - name: test2
+          image: node:14-alpine
+          command: [ "/bin/sh", "-c", "--" ]
+          args: [ "while true; do sleep 30; done;" ]

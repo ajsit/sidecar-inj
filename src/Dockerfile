@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:14-alpine
 
 WORKDIR /home/node
 
@@ -11,4 +11,4 @@ RUN chown node:node webhook.csr
 
 USER node
 
-CMD node sidecar.js
+CMD node webhook.js

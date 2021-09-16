@@ -1,4 +1,26 @@
 apiVersion: v1
+data:
+  INSTANCE: -instances=od-io-development:europe-west4:development-mysql-master=tcp:3306
+kind: ConfigMap
+metadata:
+  labels:
+    od.io/overlay: base
+    od.io/provisioner: kustomize
+  name: test
+  namespace: default
+---
+apiVersion: v1
+data:
+  INSTANCE: -instances=od-io-staging:europe-west4:development-mysql-master=tcp:3306
+kind: ConfigMap
+metadata:
+  labels:
+    od.io/overlay: base
+    od.io/provisioner: kustomize
+  name: test2
+  namespace: default
+---
+apiVersion: v1
 kind: Service
 metadata:
   labels:
@@ -38,13 +60,71 @@ spec:
         od.io/provisioner: kustomize
     spec:
       containers:
-      - image: smithaj/sidecar:1.04
+      - envFrom:
+        - secretRef:
+            name: root-secret
+        image: smithaj/sidecar:1.04
         imagePullPolicy: Never
         name: mutating-webhook-server
+        volumeMounts:
+        - mountPath: certs
+          name: certs
+          readOnly: true
+      volumes:
+      - name: certs
+        secret:
+          secretName: root-secret
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels:
+    od.io/overlay: base
+    od.io/provisioner: kustomize
+  name: my-selfsigned-ca
+  namespace: default
+spec:
+  commonName: mutating-webhook-service.default.svc
+  dnsNames:
+  - mutating-webhook-service.default.svc
+  isCA: true
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned-issuer
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  secretName: root-secret
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  labels:
+    od.io/overlay: base
+    od.io/provisioner: kustomize
+  name: selfsigned-issuer
+  namespace: default
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  labels:
+    od.io/overlay: base
+    od.io/provisioner: kustomize
+  name: my-ca-issuer
+  namespace: default
+spec:
+  ca:
+    secretName: root-secret
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: default/my-selfsigned-ca
   labels:
     od.io/overlay: base
     od.io/provisioner: kustomize
@@ -54,7 +134,6 @@ webhooks:
   - v1
   - v1beta1
   clientConfig:
-    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUdEekNDQS9lZ0F3SUJBZ0lVU0NxSGltaDRBbHpoWGtwMjlKQUV6YmFXeW1nd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2daWXhDekFKQmdOVkJBWVRBa1JGTVE4d0RRWURWUVFJREFaQ1pYSnNhVzR4RURBT0JnTlZCQWNNQjBKbApjbXhwYmlBeEVEQU9CZ05WQkFvTUIwRWdVMjFwZEdneEREQUtCZ05WQkFzTUExQkpRakVXTUJRR0ExVUVBd3dOCktpNWtaV1poZFd4MExuTjJZekVzTUNvR0NTcUdTSWIzRFFFSkFSWWRjMjFwZEdoaGFrQmhhbk5wZEM1dmJtMWoKYVhKdmMyOW1kQzVqYjIwd0hoY05NakV3T1RFek1UVXpPRFExV2hjTk1qUXdOekF6TVRVek9EUTFXakNCbGpFTApNQWtHQTFVRUJoTUNSRVV4RHpBTkJnTlZCQWdNQmtKbGNteHBiakVRTUE0R0ExVUVCd3dIUW1WeWJHbHVJREVRCk1BNEdBMVVFQ2d3SFFTQlRiV2wwYURFTU1Bb0dBMVVFQ3d3RFVFbENNUll3RkFZRFZRUUREQTBxTG1SbFptRjEKYkhRdWMzWmpNU3d3S2dZSktvWklodmNOQVFrQkZoMXpiV2wwYUdGcVFHRnFjMmwwTG05dWJXTnBjbTl6YjJaMApMbU52YlRDQ0FpSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnSVBBRENDQWdvQ2dnSUJBS3MrYmc4dFNoZW43aDcwClZCZHlnVkJITVBUYVVyYzU2ZlVnOFNJVFh3UE9sOUwrZWlwOS8wcXR5bDFTNlQ1eStNN3hBbXFmbHRGL0xMVWgKVW94VnpCenB6RDRselZtanY0TzIxM0NNV0FjcndpaXozVHFjeTYzUm1kQnlGakwwMVZTdkIrV2k4KzZ4OVlEVAp3UzVpNzhzOUp4MFBtK1lndjJTcUVHUm1ZQWpyUUtpbFJPOVNFTndpZkVoRmZXVFJmdkUwT254Y2FndGZOeFdRCnFPNnVsQitFNVlCRUhDV1l5SGtvTzZTZThaV2RlODJHc0dxZmRkTFg5M0JNc0w0UDlCV1VKVjMyQWlMZ2g4QUQKdkRDSDZOaFRQMFJpTU9OdHpQK3VYSXV3Qkdrd1JzTVV3UDZtSktlcHp3S1U3NnRXdTZNTnR2aUNpdTcwZDdUcAphSWdlMWFqRUNlR1hFMlJlaEVySnY4ZXFwNFBwbTEyK3djYzVkaU9USTkrQ1IyUWVza0QvOTFWWWxkOGRPZnA4Cmo1c3RKVzZlZk5SRTVPQWV1QkFwQkJaMzVYcHQ4cThCcFE5SEh5LzRjL3EvL1ZZd092SFZjalprekFUTk1pdEMKSFA5VllsbVBseHNVSEcxeU40NTN4dWNpWGdwaVRaeHB4VGJ6RHgvUUxqbkVpei9uSzBZblVNaDRLQUFsZDdzSgozU1F4MDVVTk9jZkZFWGdIbEUzWFp5cVU1enNRd1REWU1kSHBlYUNza2JBOXRNMURqMG4zSjJUMytUdE5hOSt4ClloTVBWVVBzV0dWMm43T3hiTk5Gc3FZM1dsVUlwWjFuMUZrd1JKUU9ScS9HdHkxQStyT2prY1RFOTd1YTlOYngKT2lnM1ZMdmZOTTJ2RW5Oem9NdC9hMlBQNUVmOUFnTUJBQUdqVXpCUk1CMEdBMVVkRGdRV0JCUjVvTm4zdUVaYgpOTmxUanMzb052RHc4YUNCUFRBZkJnTlZIU01FR0RBV2dCUjVvTm4zdUVaYk5ObFRqczNvTnZEdzhhQ0JQVEFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElDQVFCUTY2djN1d2xlN2RRY3BCRFgKZnlNUk40UCtZVm0wdGxzcml5UUVrZldKMzkzSUwzNVhpZU00b0V1dDNlWkJPRkpNVlFqelVkV292Ym5tdzhISwpGZURUbGlHdFpjeWFOSjZxOUVrMjdXRVFic0pxaithOHNrVEhhMjExeHBSRVJYSlZMRDBETC9BQnpxc0dlNDM2Ci85OXgzYlVreHgyTEk3RktOU0hqTk5qZjEzNXI0Z3hYVk9keXR0T095RDBVZ2NhTlNKTXNScmlKSzBjMzFNZXkKLzBwSHlNSUYyQzFkbTAyaTlGUUlDaUkwK3lRTldHMDFJbDVBNnk2dVdxTlRsaXpwU1pUN0hhTG5kc1Nkd0Iycwp1SjFZaTQ1NktEVU9UTVJPdVpIUW53YndBRFdqSjQvd0Q5QnBKWW5acDg4OWRvZG1QUzFDNW5OeDlBYXE4d0h4CkhIZXFyWXZKNFZQVlF3UHRXRHlsdmZoU3NFRXNLVHZPampVb3hyMmgxbXJqQ3ZYZ2lBdk9RY1FFM2grMHdrT3AKckI2a3didVg1YzRqdWZ0ZXdnN3RGbmJCcE9YSHBkVWRmUHBwa2J3Zy9aTVhhb21OTDAxdWJRZGcvbzBYSWZUSwpNUTZVcnB5aTM2RDd5dXR6bjlSWkFYdWN2cW1uNTF1ZHBLT1VQZzJnQ0wzdDYzY0dxM0pTK0pZZVRJRjVQM2lRCjc4UWhBaFl5VWRtWnJEZStNSENxbXJlV0VNZFRMQkx1dDZEaWloeStkTzNnZkhta2ZMNWREdU5KalJHdTBlQi8KRUFjN3lMMkZOeU9XNG84bmlEd1RhTm5yYW83SWRnam5NWDRsNHhseEV1T0laMDlCR1hDZTd5Z3BFZmlBdjRURAo2YkMyelNXSWJPMHNqaG91RmtSd2FtUWE4Zz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
     service:
       name: mutating-webhook-service
       namespace: default
@@ -63,7 +142,7 @@ webhooks:
   name: mutating-webhook-service.default.svc.cluster.local
   objectSelector:
     matchLabels:
-      foo: bar
+      gcp-sql-proxy: enabled
   rules:
   - apiGroups:
     - ""

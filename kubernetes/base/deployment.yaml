@@ -17,3 +17,14 @@ spec:
       - name: mutating-webhook-server
         image: smithaj/sidecar:1.04
         imagePullPolicy: Never
+        envFrom:
+          - secretRef:
+              name: root-secret
+        volumeMounts:
+          - name: certs
+            mountPath: "certs"
+            readOnly: true
+      volumes:
+        - name: certs
+          secret:
+            secretName: root-secret
