@@ -1,6 +1,7 @@
 {
     "name": "server",
     "version": "1.0.0",
+    "private": true,
     "description": "Sidecar Injector Kubernetes",
     "main": "webhook.js",
     "author": "",
