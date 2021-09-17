@@ -12,5 +12,3 @@ resources:
   - admission.yaml
   - deployment.yaml
   - service.yaml
-  - test-configmap.yaml
-  - cert-manager.yaml

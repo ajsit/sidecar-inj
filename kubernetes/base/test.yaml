@@ -20,7 +20,7 @@ spec:
   template:
     metadata:
       annotations:
-       # sqlinstance: -instances=project:region:instance-name=tcp:port
+        sqlinstance: -instances=project:region:instance-name=tcp:port
       labels:
         component: test
         foo: bar
