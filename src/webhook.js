@@ -12,26 +12,16 @@ var httpsOptions = {
    key: fs.readFileSync('/certs/tls.key'),
    cert: fs.readFileSync('/certs/tls.crt')
 }
-//var options = {key: privateKey, cert: certificate};
 
 var app = express();
 app.use(bodyParser.json());
 
 app.post('/mutate', (req, res) => {
-	//var arrayContainer = req.body.request.object.spec.containers
-    //var arrayEnvfrom = arrayContainer[0].envFrom
-    //var arrayconfigMapRef = arrayEnvfrom[0].configMapRef
-    //var instance =  req.body.request.object.metadata.annotations
     //Key used to declare the connection in annotations
     var sqlinstance = "sqlinstance"
     //Pulls the value from the key
     var sqlinstancestring = req.body.request.object.metadata.annotations[sqlinstance]
     console.log(req.body)
-    //console.log(Object.values(req.body.request.object.metadata.annotations))
-    //console.log(req.body[sqlinstance])
-	//console.log(req.body.request.object)
-    //console.log((JSON.stringify(req.body, null, 4)))
-    //console.log(req.body.request.object.spec.containers)
 	let admissionResp = {
 //Api Version and kind are required using V1
         apiVersion: "admission.k8s.io/v1",
