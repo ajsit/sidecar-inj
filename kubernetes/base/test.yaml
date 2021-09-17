@@ -1,4 +1,11 @@
 ---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: test
+  labels:
+    name: test
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,18 +20,14 @@ spec:
   template:
     metadata:
       annotations:
-        sqlinstance: -instances=od-io-development:europe-west4:development-mysql-master=tcp:3306
+       # sqlinstance: -instances=project:region:instance-name=tcp:port
       labels:
         component: test
         foo: bar
         gcp-sql-proxy: enabled
     spec:
       containers:
-        - name: test
-          image: node:14-alpine
-          command: [ "/bin/sh", "-c", "--" ]
-          args: [ "while true; do sleep 30; done;" ]
-        - name: test2
-          image: node:14-alpine
-          command: [ "/bin/sh", "-c", "--" ]
-          args: [ "while true; do sleep 30; done;" ]
+      - name: test
+        image: node:14-alpine
+        command: [ "/bin/sh", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
